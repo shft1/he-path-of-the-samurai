@@ -13,6 +13,8 @@ RUN if command -v apk >/dev/null 2>&1; then \
     fi
 RUN --mount=type=cache,target=/root/.composer \
     composer create-project --no-progress --prefer-dist laravel/laravel:${LARAVEL_VERSION} .
+# Remove APP_KEY from .env so Laravel reads it from environment variables
+RUN sed -i '/^APP_KEY=/d' .env
 COPY laravel-patches/ /tmp/patches
 RUN rsync -a /tmp/patches/ ./ && rm -rf /tmp/patches
 RUN --mount=type=cache,target=/root/.composer \
@@ -20,7 +22,7 @@ RUN --mount=type=cache,target=/root/.composer \
 RUN find storage bootstrap/cache -type d -exec chmod 775 {} + \
     && chown -R www-data:www-data storage bootstrap/cache
 
-FROM php:8.3-fpm-alpine AS php_runtime
+FROM php:8.4-fpm-alpine AS php_runtime
 ENV APP_ENV=production
 RUN --mount=type=cache,target=/var/cache/apk \
     apk add --no-cache bash icu-data-full icu-libs postgresql-libs git \

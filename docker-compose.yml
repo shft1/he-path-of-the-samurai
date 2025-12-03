@@ -21,13 +21,11 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
-    tmpfs:
-      - /var/lib/postgresql/data/pg_tmp:size=64m
     mem_limit: 512m
     networks:
       - backend
     ports:
-      - "5432:5432"
+      - "5434:5432"
 
   rust_iss:
     build:
@@ -61,10 +59,10 @@ services:
       JWST_PROGRAM_ID: ${JWST_PROGRAM_ID:-2734}
       ASTRO_APP_ID: ${ASTRO_APP_ID:-app-id}
       ASTRO_APP_SECRET: ${ASTRO_APP_SECRET:-app-secret}
-      APP_KEY: ${APP_KEY:-base64:FC1u0YJvYk0nKZ0VVwzckYlNw6C1ZJYq+Eg8g0xYc3A=}
+      APP_KEY: ${APP_KEY:-base64:6FrrjOrxKvSwhLXcsMRRkllIMCaBH8wOdDCYMQR1TxE=}
       APP_ENV: production
       APP_DEBUG: "false"
-      APP_URL: http://localhost:8080
+      APP_URL: http://localhost:8888
       DB_CONNECTION: pgsql
       DB_HOST: db
       DB_PORT: 5432
@@ -90,7 +88,7 @@ services:
     networks:
       - backend
     ports:
-      - "8080:80"
+      - "8888:80"
 
   legacy_cli:
     build:
