@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS iss_fetch_log (
     source_url TEXT NOT NULL,
     payload JSONB NOT NULL
 );
+CREATE INDEX IF NOT EXISTS idx_iss_fetch_log_fetched_at ON iss_fetch_log (fetched_at DESC);
+CREATE INDEX IF NOT EXISTS idx_iss_fetch_log_source_time ON iss_fetch_log (source_url, fetched_at DESC);
 
 CREATE TABLE IF NOT EXISTS telemetry_legacy (
     id BIGSERIAL PRIMARY KEY,
@@ -14,6 +16,7 @@ CREATE TABLE IF NOT EXISTS telemetry_legacy (
     temp NUMERIC(6,2) NOT NULL,
     source_file TEXT NOT NULL
 );
+CREATE INDEX IF NOT EXISTS idx_telemetry_legacy_recorded_at ON telemetry_legacy (recorded_at DESC);
 
 CREATE TABLE IF NOT EXISTS cms_pages (
     id BIGSERIAL PRIMARY KEY,
@@ -21,6 +24,15 @@ CREATE TABLE IF NOT EXISTS cms_pages (
     title TEXT NOT NULL,
     body TEXT NOT NULL
 );
+CREATE INDEX IF NOT EXISTS idx_cms_pages_slug ON cms_pages (slug);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS telemetry_legacy_hourly AS
+SELECT date_trunc('hour', recorded_at) AS bucket,
+       avg(voltage) AS avg_voltage,
+        avg(temp) AS avg_temp,
+        count(*) AS sample_count
+FROM telemetry_legacy
+GROUP BY bucket;
 
 -- Seed with deliberately unsafe content for XSS practice
 INSERT INTO cms_pages(slug, title, body)

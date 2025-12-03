@@ -223,11 +223,19 @@ impl SpaceCacheService {
     }
 
     pub async fn summary(&self) -> Result<SpaceSummary> {
-        let apod = self.cache_repo.latest_with_metadata("apod").await?;
-        let neo = self.cache_repo.latest_with_metadata("neo").await?;
-        let flr = self.cache_repo.latest_with_metadata("flr").await?;
-        let cme = self.cache_repo.latest_with_metadata("cme").await?;
-        let spacex = self.cache_repo.latest_with_metadata("spacex").await?;
+        let sources = vec![
+            String::from("apod"),
+            String::from("neo"),
+            String::from("flr"),
+            String::from("cme"),
+            String::from("spacex"),
+        ];
+        let latest = self.cache_repo.latest_by_sources(&sources).await?;
+        let apod = latest.get("apod").cloned().unwrap_or_else(|| json!({}));
+        let neo = latest.get("neo").cloned().unwrap_or_else(|| json!({}));
+        let flr = latest.get("flr").cloned().unwrap_or_else(|| json!({}));
+        let cme = latest.get("cme").cloned().unwrap_or_else(|| json!({}));
+        let spacex = latest.get("spacex").cloned().unwrap_or_else(|| json!({}));
 
         let iss_json = if let Some(last) = self.iss_repo.last_entry().await? {
             json!({ "at": last.fetched_at, "payload": last.payload })

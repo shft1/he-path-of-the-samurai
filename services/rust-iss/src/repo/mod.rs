@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 use serde_json::{json, Value};
 use sqlx::{PgPool, Row};
@@ -270,6 +272,34 @@ impl CacheRepo {
                 })
             })
             .unwrap_or_else(|| json!({})))
+    }
+
+    pub async fn latest_by_sources(&self, sources: &[String]) -> sqlx::Result<HashMap<String, Value>> {
+        if sources.is_empty() {
+            return Ok(HashMap::new());
+        }
+        let args: Vec<&str> = sources.iter().map(|s| s.as_str()).collect();
+        let rows = sqlx::query(
+            "SELECT DISTINCT ON (source) source, fetched_at, payload
+             FROM space_cache
+             WHERE source = ANY($1)
+             ORDER BY source, fetched_at DESC",
+        )
+        .bind(&args)
+        .fetch_all(&self.pool)
+        .await?;
+
+        let mut out = HashMap::new();
+        for row in rows {
+            let source: String = row.get("source");
+            let value = json!({
+                "source": source,
+                "at": row.get::<DateTime<Utc>, _>("fetched_at"),
+                "payload": row.get::<Value, _>("payload")
+            });
+            out.insert(source, value);
+        }
+        Ok(out);
     }
 }
 
