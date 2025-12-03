@@ -7,8 +7,8 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY Cargo.toml Cargo.lock* ./
-RUN mkdir -p src && printf 'fn main() {}' > src/main.rs \
-    && --mount=type=cache,target=/usr/local/cargo/registry \
+RUN mkdir -p src && printf 'fn main() {}' > src/main.rs
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo fetch
 
 COPY src ./src
