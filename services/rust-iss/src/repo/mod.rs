@@ -299,7 +299,7 @@ impl CacheRepo {
             });
             out.insert(source, value);
         }
-        Ok(out);
+        Ok(out)
     }
 }
 

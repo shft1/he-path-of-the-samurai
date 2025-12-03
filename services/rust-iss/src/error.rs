@@ -38,7 +38,7 @@ impl ApiError {
         }
     }
 
-    pub fn from_error(code: &'static str, err: impl std::error::Error) -> Self {
+    pub fn from_error(code: &'static str, err: impl std::fmt::Display) -> Self {
         Self::new(code, err.to_string())
     }
 
