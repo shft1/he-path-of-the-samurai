@@ -96,8 +96,6 @@ services:
     build:
       context: ./services/pascal-legacy
     container_name: pascal_legacy
-    profiles:
-      - legacy
     environment:
       CSV_OUT_DIR: /data/csv
       GEN_PERIOD_SEC: ${PAS_LEGACY_PERIOD:-300}

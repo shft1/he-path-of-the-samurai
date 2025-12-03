@@ -108,7 +108,8 @@ flowchart LR
 - `docs/06_observability_tests.md` → единый формат ошибок, логгирование и сценарии тестов.
 
 ## Лёгкий запуск на слабом хосте
-- `docker-compose.yml` теперь тянет только четыре базовых сервиса (`db`, `rust_iss`, `php`, `nginx`) и использует slim/alpine/distroless образы плюс жёсткие лимиты памяти.
+- `docker-compose.yml` стартует полный цикл (`db`, `rust_iss`, `php`, `nginx`, `pascal_legacy`) и использует slim/alpine/distroless образы плюс жёсткие лимиты памяти.
 - Laravel собирается на этапе build и больше не выполняет `composer` внутри контейнеров; статические файлы попадают в `php` и `nginx` образы через один Dockerfile.
-- Легаси-генератор вынесен в профили: `docker compose --profile legacy up pascal_legacy`, Python CLI — `--profile legacy-cli`.
+- Python CLI-прототип опционален: `docker compose --profile legacy-cli up legacy_cli`.
 - Перед запуском заполните `.env` с ключами (`JWST_*`, `ASTRO_*`, `APP_KEY`); в compose оставлены безопасные заглушки.
+- Старт одной командой: `docker compose up -d --build`.
