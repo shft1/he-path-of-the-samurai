@@ -2,39 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Response;
+use App\Services\RustIssClient;
+use App\Support\ApiResponder;
+use Illuminate\Http\Request;
 
 class ProxyController extends Controller
 {
-    private function base(): string {
-        return getenv('RUST_BASE') ?: 'http://rust_iss:3000';
-    }
-
-    public function last()  { return $this->pipe('/last'); }
-
-    public function trend() {
-        $q = request()->getQueryString();
-        return $this->pipe('/iss/trend' . ($q ? '?' . $q : ''));
-    }
-
-    private function pipe(string $path)
+    public function __construct(private RustIssClient $rust)
     {
-        $url = $this->base() . $path;
+    }
+
+    public function last()
+    {
+        return $this->forward('/last');
+    }
+
+    public function trend(Request $request)
+    {
+        return $this->forward('/iss/trend', $request->query());
+    }
+
+    private function forward(string $path, array $query = [])
+    {
         try {
-            $ctx = stream_context_create([
-                'http' => ['timeout' => 5, 'ignore_errors' => true],
-            ]);
-            $body = @file_get_contents($url, false, $ctx);
-            if ($body === false || trim($body) === '') {
-                $body = '{}';
-            }
-            json_decode($body);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                $body = '{}';
-            }
-            return new Response($body, 200, ['Content-Type' => 'application/json']);
+            $payload = $this->rust->raw($path, $query);
+            return response()->json($payload);
         } catch (\Throwable $e) {
-            return new Response('{"error":"upstream"}', 200, ['Content-Type' => 'application/json']);
+            return ApiResponder::error('RUST_PROXY_FAILED', $e->getMessage());
         }
     }
 }
