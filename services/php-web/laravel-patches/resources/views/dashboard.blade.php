@@ -162,8 +162,9 @@ document.addEventListener('DOMContentLoaded', async function () {
       const url = '/api/jwst/feed?'+new URLSearchParams(qs).toString();
       const r = await fetch(url);
       const js = await r.json();
+      const data = js.data || js;
       track.innerHTML = '';
-      (js.items||[]).forEach(it=>{
+      (data.items||[]).forEach(it=>{
         const fig = document.createElement('figure');
         fig.className = 'jwst-item m-0';
         fig.innerHTML = `
@@ -173,7 +174,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           <figcaption class="jwst-cap">${(it.caption||'').replaceAll('<','&lt;')}</figcaption>`;
         track.appendChild(fig);
       });
-      info.textContent = `Источник: ${js.source} · Показано ${js.count||0}`;
+      info.textContent = `Источник: ${data.source} · Показано ${data.count||0}`;
     }catch(e){
       track.innerHTML = '<div class="p-3 text-danger">Ошибка загрузки</div>';
     }
