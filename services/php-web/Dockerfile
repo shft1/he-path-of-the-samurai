@@ -32,13 +32,15 @@ RUN --mount=type=cache,target=/var/cache/apk \
     && apk del .build-deps
 WORKDIR /var/www/html
 COPY --from=app /var/www/html /var/www/html
-RUN chown -R www-data:www-data /var/www/html \
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh \
+    && chown -R www-data:www-data /var/www/html \
     && sed -i 's|pm.max_children =.*|pm.max_children = 8|' /usr/local/etc/php-fpm.d/zz-docker.conf \
     && sed -i 's|pm.start_servers =.*|pm.start_servers = 2|' /usr/local/etc/php-fpm.d/zz-docker.conf \
     && sed -i 's|pm.min_spare_servers =.*|pm.min_spare_servers = 2|' /usr/local/etc/php-fpm.d/zz-docker.conf \
     && sed -i 's|pm.max_spare_servers =.*|pm.max_spare_servers = 4|' /usr/local/etc/php-fpm.d/zz-docker.conf
 EXPOSE 9000
-CMD ["php-fpm", "-F"]
+CMD ["/usr/local/bin/entrypoint.sh"]
 
 FROM nginx:1.27-alpine AS nginx_runtime
 WORKDIR /var/www/html
