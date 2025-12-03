@@ -92,38 +92,15 @@ services:
     ports:
       - "8080:80"
 
-  pascal_legacy:
-    build:
-      context: ./services/pascal-legacy
-    container_name: pascal_legacy
-    environment:
-      CSV_OUT_DIR: /data/csv
-      GEN_PERIOD_SEC: ${PAS_LEGACY_PERIOD:-300}
-      PGHOST: db
-      PGPORT: 5432
-      PGUSER: monouser
-      PGPASSWORD: monopass
-      PGDATABASE: monolith
-      LEGACY_MODE: ${PAS_LEGACY_MODE:-cron}
-      LEGACY_CRON_SCHEDULE: "${PAS_LEGACY_CRON:-*/5 * * * *}"
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - csvdata:/data/csv
-    networks:
-      - backend
-    mem_limit: 128m
-
   legacy_cli:
     build:
       context: ./services/legacy-cli
-    profiles:
-      - legacy-cli
+    container_name: legacy_cli
     environment:
       CSV_OUT_DIR: /data/csv
-      GEN_PERIOD_SEC: ${PAS_LEGACY_PERIOD:-300}
-      LEGACY_RUN_ONCE: "true"
+      GEN_PERIOD_SEC: ${LEGACY_PERIOD_SEC:-300}
+      LEGACY_MODE: ${LEGACY_MODE:-cron}
+      LEGACY_CRON_SCHEDULE: "${LEGACY_CRON:-*/5 * * * *}"
       PGHOST: db
       PGPORT: 5432
       PGUSER: monouser

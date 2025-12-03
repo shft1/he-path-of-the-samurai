@@ -6,9 +6,11 @@ FROM composer:2 AS app
 ARG LARAVEL_VERSION
 ENV COMPOSER_ALLOW_SUPERUSER=1
 WORKDIR /var/www/html
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends rsync git unzip \
-    && rm -rf /var/lib/apt/lists/*
+RUN if command -v apk >/dev/null 2>&1; then \
+      apk add --no-cache rsync git unzip; \
+    else \
+      apt-get update && apt-get install -y --no-install-recommends rsync git unzip && rm -rf /var/lib/apt/lists/*; \
+    fi
 RUN composer create-project --no-progress --prefer-dist laravel/laravel:${LARAVEL_VERSION} .
 COPY laravel-patches/ /tmp/patches
 RUN rsync -a /tmp/patches/ ./ && rm -rf /tmp/patches

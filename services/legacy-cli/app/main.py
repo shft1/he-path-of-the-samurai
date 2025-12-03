@@ -75,17 +75,24 @@ def run_cycle(csv_dir: Path) -> None:
 
 def main() -> None:
     csv_dir = Path(os.getenv("CSV_OUT_DIR", "/data/csv"))
-    run_once = os.getenv("LEGACY_RUN_ONCE", "true").lower() == "true"
+    mode = os.getenv("LEGACY_MODE", "loop")
     interval = int(os.getenv("GEN_PERIOD_SEC", "300"))
 
-    while True:
+    if mode in ("cron", "once"):
+        # Single execution for cron mode
         try:
             run_cycle(csv_dir)
         except Exception as exc:  # pylint: disable=broad-except
             print(f"[legacy-cli] error: {exc}", file=sys.stderr, flush=True)
-        if run_once:
-            break
-        time.sleep(interval)
+            sys.exit(1)
+    else:
+        # Loop mode
+        while True:
+            try:
+                run_cycle(csv_dir)
+            except Exception as exc:  # pylint: disable=broad-except
+                print(f"[legacy-cli] error: {exc}", file=sys.stderr, flush=True)
+            time.sleep(interval)
 
 
 if __name__ == "__main__":
