@@ -7,9 +7,9 @@
 ## Таблица улучшений
 | Модуль | Проблема | Решение | Паттерн | Эффект |
 | --- | --- | --- | --- | --- |
-| rust_iss | Хендлеры = SQL + HTTP, нет DI | Ввёл ServiceRegistry, клиенты, репы, единый ApiError | Clean Architecture | -40% коду в main, тестируемые сервисы |
+| rust_iss | Хендлеры = SQL + HTTP, нет DI | Ввёл ServiceRegistry, клиенты, репы, единый ApiError | Clean Architecture | -40% кода в `main`, понятные зависимости |
 | rust_iss summary | 7 SQL на дашборд | DISTINCT-запрос + индексы | Query batching | 1 запрос вместо 5, <120 ms |
-| Laravel | Бизнес-логика в контроллерах | Сервисы (RustIssClient, OsdrService, Astro) | Service/Gateway | Переисп. API, легко мокать |
+| Laravel | Бизнес-логика в контроллерах | Сервисы (RustIssClient, OsdrService, Astro) | Service/Gateway | Переисп. API, меньше дублирования |
 | pascal-legacy | Бесконечный цикл, тяжёлый образ | Multi-stage + supercronic + LEGACY_RUN_ONCE | Sidecar cron | -200 MB образ, предсказуемые логи |
 | БД | Нет индексов/агрегатов | Добавил covering индексы + MV | CQRS-lite | Seq scan → index scan, готово к отчётам |
 

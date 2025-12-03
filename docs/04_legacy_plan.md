@@ -1,30 +1,28 @@
-# Legacy generator plan
+# План по легаси-генератору
 
-## Current contract
-- CSV schema: `recorded_at TIMESTAMPTZ`, `voltage NUMERIC(5,2)`, `temp NUMERIC(5,2)`, `source_file TEXT`.
-- Target table: `telemetry_legacy(recorded_at, voltage, temp, source_file)`.
-- Environment surface:
-  - `CSV_OUT_DIR` — location for artefacts (bind-mounted volume).
-  - `PG*` — PostgreSQL connectivity.
-  - `GEN_PERIOD_SEC` — legacy sleep interval (still honoured in daemon mode).
-  - `LEGACY_RUN_ONCE` — new flag so the Pascal binary can terminate after one batch.
+## Контракт
+- CSV: `recorded_at TIMESTAMPTZ`, `voltage NUMERIC(5,2)`, `temp NUMERIC(5,2)`, `source_file TEXT`.
+- Целевая таблица: `telemetry_legacy(recorded_at, voltage, temp, source_file)`.
+- Переменные окружения:
+  - `CSV_OUT_DIR` — директория для CSV (volume `csvdata`).
+  - `PG*` — подключение к PostgreSQL.
+  - `GEN_PERIOD_SEC` — интервал генерации в режиме daemon.
+  - `LEGACY_CRON_SCHEDULE` — расписание cron (по умолчанию `*/5 * * * *`).
 
-## Container hardening
-- `services/pascal-legacy/Dockerfile` is now multi-stage: Debian build → Alpine runtime (saves ~180 MB).
-- `run.sh` no longer compiles on boot; it drives the runtime mode (`cron`, `once`, or `daemon`) and pushes logs to stdout/stderr.
-- `supercronic` schedules the job via `LEGACY_CRON_SCHEDULE` (default `*/5 * * * *`), so weak machines don’t keep a busy Pascal loop alive; each cron run sets `LEGACY_RUN_ONCE=true`.
-- All CSVs remain on `csvdata` volume; Postgres COPY still happens from the generated files.
+## Контейнер
+- Pascal заменён на Python CLI (`services/legacy-cli`, образ `python:3.12-alpine`).
+- `run.sh` выбирает режим (`cron`, `once`, `daemon`) и отправляет логи в stdout/stderr.
+- `supercronic` читает расписание и запускает CLI; каждая задача устанавливает `LEGACY_RUN_ONCE=true`.
+- CSV остаются на volume, импорт в Postgres выполняется из файлов.
 
-## Migration path
-1. **Pascal maintenance mode**: keep the existing binary but run it via cron (already wired). Health/log checks are now deterministic.
-2. **Python CLI prototype**: `services/legacy-cli` reproduces the behaviour using `psycopg` and shares the same env contract. It’s published behind the optional `legacy_cli` service with `profiles: ["experimental"]` so it doesn’t run in production until toggled.
-3. **Rollout plan**:
-   - Run the Python CLI in parallel (experimental profile) writing to a shadow table to compare outputs.
-   - Once verified, flip `pascal_legacy` off and promote `legacy_cli` in `docker-compose.yml`.
-   - Optionally rewrite the CLI in Go/Rust using the same contract; only the service build context changes.
+## Маршрут миграции
+1. Pascal-утилита держится «на поддержке», но запускается через cron.
+2. Python CLI повторяет логику, использует тот же контракт окружения.
+3. После проверки можно отключить Pascal и оставить `legacy_cli` основным сервисом.
+4. При необходимости CLI можно переписать на Go/Rust — контракт и расписание не меняются.
 
-## Logging & cron manifest
-- Cron is rendered at runtime (`/tmp/legacy.cron`) to respect env overrides.
-- Job output is streamed by supercronic, so K8s/Compose tailing works out of the box.
-- CSV/SQL failures surface as explicit log lines (`[legacy] ...`) or as `ApiResponder` payloads when the new CLI is called via HTTP (future scope).
+## Логирование
+- Cron-файл формируется на лету (`/tmp/legacy.cron`), учитывает переменные окружения.
+- `supercronic` стримит вывод — `docker logs legacy_cli` показывает каждое выполнение.
+- Ошибки CSV/SQL фиксируются строками с префиксом `[legacy]`.
 

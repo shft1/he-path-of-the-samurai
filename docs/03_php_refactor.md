@@ -1,20 +1,23 @@
-# Laravel layer refactor
+# Рефакторинг Laravel-слоя
 
-## What changed
-- Introduced service layer under `app/Services`:
-  - `RustIssClient` centralises interaction with the Rust backend (shared timeout, retries, env-driven base URL, envelope-aware responses).
-  - `DashboardService`, `OsdrService`, `JwstFeedService`, `AstroEventsService` concentrate business logic, so controllers render or orchestrate only.
-- Added `App\Support\ApiResponder` to emit the global `{ ok, data | error }` contract with `trace_id`, reusing the same semantics as rust_iss.
-- Controllers (`DashboardController`, `OsdrController`, `ProxyController`, `AstroController`) now use constructor injection, no longer instantiate curl/file_get_contents inline.
-- Cleaned up routing to avoid duplicate declarations and to improve readability.
+## Что сделано
+- В `app/Services` добавлены сервисы:
+  - `RustIssClient` — единый клиент к rust_iss c таймаутами, retries и базовым URL из env.
+  - `DashboardService`, `OsdrService`, `JwstFeedService`, `AstroEventsService` — бизнес-логика вынесена из контроллеров.
+- `App\Support\ApiResponder` формирует единый ответ `{ ok, data | error }` с `trace_id`.
+- Контроллеры используют DI через конструктор и не вызывают curl/file_get_contents напрямую.
+- Маршруты сгруппированы без дублей.
 
-## Patterns applied
-- **Gateway/Service pattern**: `RustIssClient` acts as an anti-corruption layer for all internal APIs, allowing us to swap the data source (e.g. JWST via AstronomyAPI) in one place.
-- **DTO + Presenter**: `OsdrService` encapsulates the flattening/normalisation step that views rely on, making it trivially testable.
-- **Response envelope**: `ApiResponder` enforces the mandated 200+`ok=false` policy everywhere, with UUID trace propagation.
+## Паттерны
 
-## Operational benefits
-- Timeouts, retries and headers are configured once via env, preventing per-controller drift.
-- We can stub the new services in tests or replace them with fake clients without touching controllers or Blade.
-- Consistent JSON contract simplifies the nginx/JS integration and aligns with the rust_iss backend behaviour.
+| Паттерн | Назначение |
+|---------|------------|
+| Gateway/Service | `RustIssClient` экранирует внутренние API и envelope |
+| DTO / Presenter | Сервисы готовят данные для Blade без доступа к HTTP/SQL |
+| Response Envelope | `ApiResponder` поддерживает политику 200 + `ok=false` |
+
+## Польза
+- Таймауты, заголовки и ретраи задаются централизованно.
+- Сервисы легко подменяются другими реализациями благодаря DI.
+- JSON-контракт совпадает с rust_iss, что упрощает интеграцию с фронтом и логирование.
 
