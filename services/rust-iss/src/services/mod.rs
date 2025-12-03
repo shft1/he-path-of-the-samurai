@@ -1,7 +1,7 @@
 use std::{future::Future, sync::Arc, time::Duration};
 
 use anyhow::{anyhow, Context, Result};
-use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
+use chrono::{DateTime, Datelike, NaiveDateTime, TimeZone, Utc};
 use serde_json::{json, Value};
 use tokio::sync::Mutex;
 use tracing::{error, info};
@@ -449,5 +449,24 @@ fn pick_datetime(value: &Value, keys: &[&str]) -> Option<DateTime<Utc>> {
         }
     }
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn haversine_is_zero_for_same_point() {
+        let dist = haversine_km(10.0, 20.0, 10.0, 20.0);
+        assert!(dist.abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn pick_datetime_reads_iso_string() {
+        let val = json!({ "ts": "2025-01-01T00:00:00Z" });
+        let dt = pick_datetime(&val, &["ts"]).unwrap();
+        assert_eq!(dt.year(), 2025);
+    }
 }
 
