@@ -1,21 +1,20 @@
-# Build stage
-FROM rust:slim AS build
-RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libssl-dev ca-certificates && rm -rf /var/lib/apt/lists/*
+# syntax=docker/dockerfile:1.6
+
+FROM rust:1.82-slim-bookworm AS build
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends pkg-config libssl-dev ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
-# кэш зависимостей
-COPY Cargo.toml ./
+COPY Cargo.toml Cargo.lock* ./
 RUN mkdir -p src && printf 'fn main() {}' > src/main.rs && cargo fetch
 
-# исходники и сборка
 COPY src ./src
-RUN cargo build --release
+RUN cargo build --release && strip target/release/rust_iss
 
-# Runtime stage
-FROM debian:12-slim
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+FROM gcr.io/distroless/cc-debian12:nonroot AS runtime
 ENV RUST_LOG=info
 WORKDIR /app
-COPY --from=build /app/target/release/rust_iss /usr/local/bin/rust_iss
+COPY --from=build /app/target/release/rust_iss /app/rust_iss
 EXPOSE 3000
-CMD ["rust_iss"]
+ENTRYPOINT ["/app/rust_iss"]
