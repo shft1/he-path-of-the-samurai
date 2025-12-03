@@ -101,6 +101,30 @@ services:
       PGUSER: monouser
       PGPASSWORD: monopass
       PGDATABASE: monolith
+      LEGACY_MODE: ${PAS_LEGACY_MODE:-cron}
+      LEGACY_CRON_SCHEDULE: "${PAS_LEGACY_CRON:-*/5 * * * *}"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - csvdata:/data/csv
+    networks:
+      - backend
+
+  legacy_cli:
+    build:
+      context: ./services/legacy-cli
+    profiles:
+      - experimental
+    environment:
+      CSV_OUT_DIR: /data/csv
+      GEN_PERIOD_SEC: ${PAS_LEGACY_PERIOD:-300}
+      LEGACY_RUN_ONCE: "true"
+      PGHOST: db
+      PGPORT: 5432
+      PGUSER: monouser
+      PGPASSWORD: monopass
+      PGDATABASE: monolith
     depends_on:
       db:
         condition: service_healthy

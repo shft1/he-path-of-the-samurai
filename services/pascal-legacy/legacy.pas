@@ -55,10 +55,13 @@ begin
   fpSystem(copyCmd);
 end;
 
-var period: Integer;
+var
+  period: Integer;
+  runOnce: Boolean;
 begin
   Randomize;
   period := StrToIntDef(GetEnvDef('GEN_PERIOD_SEC', '300'), 300);
+  runOnce := AnsiCompareText(GetEnvDef('LEGACY_RUN_ONCE', 'false'), 'true') = 0;
   while True do
   begin
     try
@@ -67,6 +70,8 @@ begin
       on E: Exception do
         WriteLn('Legacy error: ', E.Message);
     end;
+    if runOnce then
+      Break;
     Sleep(period * 1000);
   end;
 end.
