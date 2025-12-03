@@ -10,67 +10,68 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --space-dark: #0d0d0d;
-      --space-purple: #2d1b4e;
-      --space-accent: #ff6b35;
-      --space-glow: #ffd700;
-      --space-teal: #00d4aa;
+      --space-light: #f8f9fa;
+      --space-cream: #fefefe;
+      --header-bg: #1e293b;
+      --accent-orange: #f97316;
+      --accent-amber: #f59e0b;
+      --text-dark: #1e293b;
     }
     body {
-      background: linear-gradient(135deg, var(--space-dark) 0%, #1a1a2e 50%, var(--space-purple) 100%);
+      background: linear-gradient(180deg, var(--space-light) 0%, #e2e8f0 100%);
       min-height: 100vh;
       font-family: 'Space Grotesk', sans-serif;
+      color: var(--text-dark);
     }
     .space-header {
-      background: linear-gradient(90deg, rgba(13,13,13,0.95) 0%, rgba(45,27,78,0.9) 100%);
-      border-bottom: 2px solid var(--space-accent);
-      box-shadow: 0 4px 30px rgba(255,107,53,0.2);
-      backdrop-filter: blur(10px);
+      background: var(--header-bg);
+      border-bottom: 3px solid var(--accent-orange);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
     .space-brand {
       font-family: 'Orbitron', monospace;
       font-weight: 700;
-      font-size: 1.5rem;
-      color: var(--space-glow) !important;
-      text-shadow: 0 0 20px rgba(255,215,0,0.5);
+      font-size: 1.4rem;
+      color: #fff !important;
       letter-spacing: 2px;
     }
     .space-brand:hover {
-      color: var(--space-accent) !important;
-      text-shadow: 0 0 30px rgba(255,107,53,0.7);
+      color: var(--accent-amber) !important;
     }
     .space-nav-link {
       font-family: 'Space Grotesk', sans-serif;
       font-weight: 500;
-      color: #e0e0e0 !important;
+      color: #cbd5e1 !important;
       padding: 0.5rem 1.2rem !important;
       margin: 0 0.25rem;
       border-radius: 20px;
       transition: all 0.3s ease;
-      position: relative;
     }
     .space-nav-link:hover {
-      color: var(--space-glow) !important;
-      background: rgba(255,215,0,0.1);
+      color: #fff !important;
+      background: rgba(255,255,255,0.1);
     }
     .space-nav-link.active {
-      background: linear-gradient(135deg, var(--space-accent), #ff8c5a);
+      background: linear-gradient(135deg, var(--accent-orange), var(--accent-amber));
       color: #fff !important;
     }
-    .nav-icon {
-      margin-right: 6px;
-    }
-    #map{height:340px; border-radius: 12px;}
+    .nav-icon { margin-right: 6px; }
+    #map { height: 340px; border-radius: 12px; }
     .card {
-      background: rgba(30,30,50,0.8);
-      border: 1px solid rgba(255,107,53,0.2);
-      backdrop-filter: blur(5px);
+      background: var(--space-cream);
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
     .card-title, .card-header {
-      color: var(--space-glow);
+      color: var(--text-dark);
       font-family: 'Orbitron', monospace;
+      font-weight: 600;
     }
-    .text-muted { color: #a0a0a0 !important; }
+    .card-header {
+      background: linear-gradient(90deg, #f1f5f9, #e2e8f0);
+      border-bottom: 2px solid var(--accent-orange);
+    }
+    .container { max-width: 1400px; }
   </style>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
