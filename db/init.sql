@@ -26,6 +26,14 @@ CREATE TABLE IF NOT EXISTS cms_pages (
 );
 CREATE INDEX IF NOT EXISTS idx_cms_pages_slug ON cms_pages (slug);
 
+CREATE TABLE IF NOT EXISTS cms_blocks (
+    id BIGSERIAL PRIMARY KEY,
+    slug TEXT UNIQUE NOT NULL,
+    content TEXT NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+CREATE INDEX IF NOT EXISTS idx_cms_blocks_slug ON cms_blocks (slug);
+
 CREATE MATERIALIZED VIEW IF NOT EXISTS telemetry_legacy_hourly AS
 SELECT date_trunc('hour', recorded_at) AS bucket,
        avg(voltage) AS avg_voltage,
@@ -40,4 +48,9 @@ VALUES
 ('welcome', 'Добро пожаловать', '<h3>Демо контент</h3><p>Этот текст хранится в БД</p>'),
 ('unsafe', 'Небезопасный пример', '<script>console.log("XSS training")
 </script><p>Если вы видите всплывашку значит защита не работает</p>')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO cms_blocks(slug, content, is_active)
+VALUES
+('dashboard_experiment', '<div class="experiment">Dashboard Experiment Content</div>', TRUE)
 ON CONFLICT DO NOTHING;
